@@ -1,83 +1,81 @@
-// function handleSubmit() {
-//     d3.event.preventDefault();
-//     var subject = d3.select("#selDataset").node().value;
-//     d3.select("#selDataset").node().value = "";
-    
-//     buildPlot(subject);
-// };
-// function buildPlot(subject) {
-    d3.json('./samples.json').then(function(data) {
-      
-      var subject = data.map(d => d.names);
-      console.log(subject);
-      var meta = data.map(d => d.metadata);
-      console.log(meta);
-      var samples = data.map(d => d.samples);
-      console.log(samples);
-      var ids = [];
-      var otu_ids = [];
-      var sample_values = [];
-      Object.entries(samples).forEach(d => {
-        ids.push(d.id);
-        otu_ids.push(d.otu_ids);
-        sample_values.push(d.sample_values);
-      });
-      console.log(ids);
-      console.log(otu_ids);
-      console.log(sample_values);
-      // var trace1 = {
-      //   type: "bar",
-      //   orientation: "h",
-      //   x: sample_values,
-      //   y: otu_labels,
-      //   line: {
-      //     color: "#17BECF"
-      //   }
-      // };
-      // var data = [trace1];
-      // var layout = {
-      //   title: `${subject} OTU Profile`,
-      //   xaxis: {title: 'OTU Values'},
-      //   yaxis: {title: 'OTU ID'}
-      // };
-      // Plotly.newPlot("plot", data, layout);
-    });
-  // };
-  
-  // Add event listener for submit button
-  // d3.select("#submit").on("click", handleSubmit);
 
-
-
-// 1. Use the D3 library to read in `samples.json`.
-// d3.json('samples.json').then(function(data){})
-// 2. Create a horizontal bar chart with a dropdown menu to display the top 10 OTUs found in that individual.
-
-// * Use `sample_values` as the values for the bar chart.
-
-// * Use `otu_ids` as the labels for the bar chart.
-
-// * Use `otu_labels` as the hovertext for the chart.
-
-// 3. Create a bubble chart that displays each sample.
-
-// * Use `otu_ids` for the x values.
-
-// * Use `sample_values` for the y values.
-
-// * Use `sample_values` for the marker size.
-
-// * Use `otu_ids` for the marker colors.
-
-// * Use `otu_labels` for the text values.
-
-// ![Bubble Chart](Images/bubble_chart.png)
-
-// 4. Display the sample metadata, i.e., an individual's demographic information.
-
-// 5. Display each key-value pair from the metadata JSON object somewhere on the page.
-
-// ![hw](Images/hw03.png)
-
-// 6. Update all of the plots any time that a new sample is selected.
-
+function init(){
+  d3.json('./samples.json').then(function(data) {
+    samples = data.samples
+    metaData = data.metadata
+    ids = samples.map(d => d.id)
+    // populate drop-down menu with subject IDs
+    d3.select("#selDataset")
+      .selectAll("option")
+      .data(ids)
+      .enter()
+      .append("option")
+      .property('value', function(d) {return d})
+      .text(function(d) {return `BB-${d}`})
+    // create variables to use in plots
+    otu_labels = samples[0].otu_labels
+    otu_ids = samples[0].otu_ids;
+    sample_values = samples[0].sample_values;
+    topOTU = otu_ids.slice(0,10);
+    topValues = sample_values.slice(0,10);
+    topLabels = otu_labels.slice(0,10);
+    textLabels = []
+    for (i = 0; i < topLabels.length; i++){
+      entry = topLabels[i]
+      textLabels.push(`${entry}`)}
+    tickValues = []
+    for (i = 0; i < topOTU.length; i++){
+      entry = topOTU[i]
+      tickValues.push(`OTU:${entry}`)}
+    console.log(tickValues)
+    //plot bar chart
+    data = [{
+      y: toString(topOTU),
+      x: topValues,
+      text: textLabels,
+      type: 'bar'}];
+    layout = {
+      title: `Subject ${samples[0].id}'s Bellybutton Flora`,
+      xaxis:{title:'Colony Size'},
+      yaxis: {title: 'Top Ten OTUs',tickmode: "array", tickvals: topOTU, ticktext: tickValues}}
+    Plotly.newPlot('bar', data, layout)
+    // plot bubble chart
+    colors = []
+    for (i = 0; i < 10; i++){
+      colors.push(`rgb(${Math.floor(Math.random()*255+1)}, \
+        ${Math.floor(Math.random()*255+1)}, \
+        ${Math.floor(Math.random()*255+1)})`)}
+    var data2 = [{
+      x: topOTU,
+      y: topValues,
+      text: textLabels,
+      mode: 'markers',
+      marker: {
+        color: colors,
+        opacity: .5,
+        size: topValues}}]
+    var layout2 = {
+      title: `Subject ${samples[0].id}'s Bellybutton Flora`,
+      showlegend: false,
+      xaxis:{title: 'OTU ID', ticks: tickValues},
+      yaxis:{title: 'Colony Size'}};
+    Plotly.newPlot('bubble', data2, layout2);
+    //insert metadata into panel-body
+    var firstSub = metaData[0]
+    var list = d3.select('#sample-metadata')
+    list.append('ul')
+    Object.entries(firstSub).forEach(([key, value]) =>
+    list.selectAll('ul')
+        .append('li')
+        .text(`${key} : ${value}`))
+  })
+}
+init()
+function optionChanged() {
+    d3.event.preventDefault();
+    var subject = d3.select("#selDataset").node().value;
+    d3.select("#selDataset").node().value = "";
+    buildPlot(subject);
+};
+d3.select("#selDataset").on("change", optionChanged);
+function buildPlot(subject){};
