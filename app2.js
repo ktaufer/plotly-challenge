@@ -1,5 +1,7 @@
 //init function to populate charts with default values
 
+
+
 function init(){
     d3.json('./samples.json').then(function(data) {
         var samples = data.samples;

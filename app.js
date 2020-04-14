@@ -1,8 +1,4 @@
 function init(){
-  d3.select('#bar').node().value = ''
-  d3.select('#bubble').node().value = ''
-  d3.select('#gauge').node().value = ''
-  d3.select('#sample-metadata').node().value = ''
   // load data
   d3.json('./samples.json').then(function(data) {
     var samples = data.samples;
@@ -78,27 +74,18 @@ function init(){
         mode: "gauge+number"
       }];
     var layout3 = { width: 600, height: 500, margin: { t: 0, b: 0 } };
-    Plotly.newPlot('gauge', data, layout);
+    Plotly.newPlot('gauge', data3, layout3);
   })
 };
 
 init();
 
-function optionChanged() {
-    d3.event.preventDefault();
-    var subject = d3.select("#selDataset").node().value;
-    d3.select("#selDataset").node().value = "";
-    buildPlot(subject);
-};
-
-d3.select("#selDataset").on("change", optionChanged);
 
 function buildPlot(subject){
   // load data
   d3.json('./samples.json').then(function(data) {
     var samples = data.samples;
     var metaData = data.metadata;
-    
     // create variables to use in plots
     for(i = 0; i < samples.length; i++) {
       if (subject === samples[i].id) {
@@ -113,7 +100,6 @@ function buildPlot(subject){
       var topLabels = otu_labels.slice(0,10).reverse();
       };
     };  
-    
     //plot bar chart
     var bar = d3.select('#bar');
     bar.node().value = '';
@@ -154,7 +140,7 @@ function buildPlot(subject){
     
     //insert metadata into panel-body
     var list = d3.select('#sample-metadata');
-    list.node().value = '';
+    list.html('');
     list.append('ul');
     Object.entries(subjectMeta).forEach(([key, value]) =>
       list.selectAll('ul')
@@ -163,11 +149,11 @@ function buildPlot(subject){
     
     //plot gauge chart
     var gauge = d3.select('#gauge');
-    gauge.node().value = '';
+    // gauge.node().value = '';
     var data3 = [{
-        domain: { x: [0, 1], y: [0, 1] },
+        domain: {x: [0, 1], y: [0, 1]},
         value: subWash,
-        title: { text: "Washing Frequency (times per week)" },
+        title: {text: "Washing Frequency (times per week)"},
         type: "indicator",
         mode: "gauge+number"
       }];
@@ -175,3 +161,12 @@ function buildPlot(subject){
     Plotly.newPlot('gauge', data3, layout3);
   });
 };
+
+function optionChanged(subject) {
+  d3.event.preventDefault();
+  var subject = d3.select("#selDataset").node().value;
+  d3.select("#selDataset").node().value = "";
+  buildPlot(subject);
+};
+
+d3.select("#selDataset").on("change", optionChanged);
